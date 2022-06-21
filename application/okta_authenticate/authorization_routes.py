@@ -10,6 +10,8 @@ CORS(okta_routes)
 @okta_routes.route('/authenticate', methods=["GET", "POST"])
 def authenticate():
     if not is_authorized(request):
+        print('request',request)
+        #print(is_authorized(request))
         return "Unauthorized", 401
    
     return jsonify({"message": True})

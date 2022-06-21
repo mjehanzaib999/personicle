@@ -18,22 +18,25 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
     app.secret_key = os.urandom(24)
-    # os.makedirs(config.SQLITE_DATABASE_LOCATION, exist_ok=True)
+    os.makedirs(config.SQLITE_DATABASE_LOCATION, exist_ok=True)
 
     if os.environ.get("INGESTION_PROD", '0') != '1':
         fileConfig('logging.cfg')
     else:
-        fileConfig('logging.cfg')
+        # fileConfig('logging.cfg')
         # TO DO: use replace file based logging with gunicorn logger 
-        # gunicorn_logger = logging.getLogger('gunicorn.error')
-        # app.logger.handlers = gunicorn_logger.handlers
-        # app.logger.setLevel(gunicorn_logger.level)
+        gunicorn_logger = logging.getLogger('gunicorn.error')
+        app.logger.handlers = gunicorn_logger.handlers
+        app.logger.setLevel(gunicorn_logger.level)
 
    
     print("Setting up okta")
+   
     if os.environ.get("INGESTION_PROD", "0") == '1':
         # in prod env, need to create okta config json file from env variable
+        print('in dir loop')
         os.makedirs("config_json", exist_ok=True)
+        #os.makedirs("config_json", exist_ok=False)
         pprint.pprint(os.environ.get("OKTA_SECRETS_JSON", "MISSING_OKTA_FILE"))
         with open("config_json/client_secrets.json", "w") as fp:
             fp.write(os.environ.get("OKTA_SECRETS_JSON", "MISSING_OKTA_FILE"))
@@ -51,9 +54,9 @@ def create_app():
     # dialect+driver://username:password@host:port/database
     # e.g., postgresql+pg8000://dbuser:kx%25jj5%2Fg@pghost10/appdb
     #   if os.environ.get("INGESTION_PROD", '0') != '1':
-    app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://{username}:{password}@{dbhost}/{dbname}".format(username=os.environ['CREDENTIALS_DB_USER'], password=os.environ['CREDENTIALS_DB_PASSWORD'],
-                                                                                                                dbhost=os.environ['CREDENTIALS_DB_HOST'], dbname=os.environ['CREDENTIALS_DB_NAME'])
-    # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///{}".format(os.path.join(config.SQLITE_DATABASE_LOCATION, config.SQLITE_DATABASE_NAME))
+    # app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://{username}:{password}@{dbhost}/{dbname}".format(username=os.environ['CREDENTIALS_DB_USER'], password=os.environ['CREDENTIALS_DB_PASSWORD'],
+    #                                                                                                             dbhost=os.environ['CREDENTIALS_DB_HOST'], dbname=os.environ['CREDENTIALS_DB_NAME'])
+    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///{}".format(os.path.join(config.SQLITE_DATABASE_LOCATION, config.SQLITE_DATABASE_NAME))
 
     print("Setting up sqlalchemy")
     models.init_app(app)

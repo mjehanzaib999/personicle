@@ -27,16 +27,16 @@ if int(os.environ.get("INGESTION_PROD", '0')) != 1:
     IOS_APP_CONFIG = __app_config['IOS_APP']
     GOOGLE_FIT_CONFIG = __app_config['GOOGLE_FIT']
 
-    KAFKA_CONFIG = __app_config['KAFKA']
+    # KAFKA_CONFIG = __app_config['KAFKA']
 
     EVENTHUB_CONFIG = __app_config['EVENTHUB']
 
-    DB_CONFIG = __app_config['CREDENTIALS_DATABASE']
+    # DB_CONFIG = __app_config['CREDENTIALS_DATABASE']
 
-    os.environ['CREDENTIALS_DB_USER'] = DB_CONFIG['USERNAME']
-    os.environ['CREDENTIALS_DB_PASSWORD'] = DB_CONFIG['PASSWORD']
-    os.environ['CREDENTIALS_DB_HOST'] = DB_CONFIG['HOST']
-    os.environ['CREDENTIALS_DB_NAME'] = DB_CONFIG['NAME']
+    # os.environ['CREDENTIALS_DB_USER'] = DB_CONFIG['USERNAME']
+    # os.environ['CREDENTIALS_DB_PASSWORD'] = DB_CONFIG['PASSWORD']
+    # os.environ['CREDENTIALS_DB_HOST'] = DB_CONFIG['HOST']
+    # os.environ['CREDENTIALS_DB_NAME'] = DB_CONFIG['NAME']
 else:
     HOST_CONFIG = {
         'HOST_ADDRESS': os.environ['INGESTION_HOST_ADDRESS']

@@ -1,0 +1,2 @@
+,dateOfSleep,duration,efficiency,endTime,infoCode,isMainSleep,logId,logType,minutesAfterWakeup,minutesAsleep,minutesAwake,minutesToFallAsleep,startTime,timeInBed,type
+0,2022-06-08,22860000,93,2022-06-08T05:46:18.000,0,True,37184337543,manual,0,345,26,10,2022-06-07T23:25:00.000,381,classic

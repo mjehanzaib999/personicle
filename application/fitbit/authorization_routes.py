@@ -42,23 +42,24 @@ def fitbit_connection():
    
     session.clear()
     request_data = request.args
-   
+    print('in fitbit connection function')
     session['user_id'] = request.args.get("user_id", None)
    
     if session['user_id'] is None:
         LOG.error("Unauthorised access: Denied")
         return Response("User not logged in", 401)
     
-    print(request_data)
+    # print('request data',request_data)
     session['redirect_url'] = request_data.get("redirect_uri")
-    if verify_user_connection(personicle_user_id=session['user_id'], connection_name='fitbit'):
-        status, activities_response = initiate_fitbit_data_import(session['user_id'])
-        if status:
-            LOG.info("Returning {}".format({'success': True, 'response': activities_response}))
-            return jsonify({'success': True, 'response': activities_response})
-        else:
-            LOG.info("Returning {}".format({'success': False, 'response': activities_response}))
-            return jsonify({'success': False, 'response': activities_response})
+    # if verify_user_connection(personicle_user_id=session['user_id'], connection_name='fitbit'):
+    #     print('in verify user connection')
+    #     status, activities_response = initiate_fitbit_data_import(session['user_id'])
+    #     if status:
+    #         LOG.info("Returning {}".format({'success': True, 'response': activities_response}))
+    #         return jsonify({'success': True, 'response': activities_response})
+    #     else:
+    #         LOG.info("Returning {}".format({'success': False, 'response': activities_response}))
+    #         return jsonify({'success': False, 'response': activities_response})
     
     return redirect('/fitbit/oauth/code-callback')
     
@@ -69,11 +70,13 @@ def fitbit_connection():
 def get_token():
  
     pprint.pprint("inside /code-callback")
-    pprint.pprint(session['user_id'])
+    print("Session user_id",session['user_id'])
+    print("oauth_config user_id",oauth_config['CLIENT_ID'] )
 
     if session['user_id'] is None:
         return Response("User not logged in", 401)
     scope = "activity%20heartrate%20location%20nutrition%20profile%20sleep%20weight"
+    #scope = "%20heartrate"
     print(session.keys())
     
     if 'user_id' not in session:
@@ -90,7 +93,7 @@ def get_token():
 # Store the access token in sqlite db and initiate data import
 @fitbit_routes.route('/fitbit/oauth/access-token/')
 def get_access_token():
-  
+    print('In access token func')
     # session['user_id'] = request.args.get("user_id", None)
     if session['user_id'] is None:
         return Response("User not logged in", 401)
@@ -98,7 +101,7 @@ def get_access_token():
     user_id = session['user_id']
     code = request.args.get('code')
     # print(session['user_id'])
-    print(code)
+    print('code', code)
 
     message = oauth_config['CLIENT_ID'] + ':' + oauth_config['CLIENT_SECRET']
     message_bytes = message.encode('ascii')
@@ -135,6 +138,7 @@ def get_access_token():
         return jsonify(success=False)
     
     status, activities_response = initiate_fitbit_data_import(user_id)
+    print('status', status)
     if status:
         LOG.info("Returning {}".format({'success': True, 'response': activities_response}))
         return jsonify({'success': True, 'response': activities_response})

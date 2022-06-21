@@ -44,12 +44,14 @@ def send_records_to_producer(personicle_user_id, records, stream_name, limit = N
     formatted_records = []
     for record in records:
         formatted_record = record_formatter(record, personicle_user_id)
+        print(type(formatted_record))
         if type(formatted_record) is dict:
             formatted_records.append(formatted_record)
         elif type(formatted_record) is list:
             formatted_records.extend(formatted_record)
         else:
             LOG.error("Record not processed correctly for stream {}, record data: {} \n formatted record: {}".format(stream_name, json.dumps(record, indent=2), json.dumps(formatted_record, indent=2)))
+            print("Record not processed correctly for stream {}, record data: {} \n formatted record: {}".format(stream_name, json.dumps(record, indent=2), json.dumps(formatted_record, indent=2)))
             
         count += 1
 
@@ -62,6 +64,7 @@ def send_records_to_producer(personicle_user_id, records, stream_name, limit = N
         num_records_sent = len(formatted_records)
         status = True
     except Exception as e:
+        print("Error while sending records to eventhub for stream {}: \n {}".format(stream_name, str(e)))
         LOG.error("Error while sending records to eventhub for stream {}: \n {}".format(stream_name, str(e)))
         num_records_sent = 0
         status = False

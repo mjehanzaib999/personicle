@@ -7,6 +7,10 @@ import logging
 from . import fitbit_upload
 from application.models.base import db
 
+import json
+    
+# Data to be written
+
 FITBIT_ACTIVITIES_ENDPOINT = "/1/user/{user_id}/activities/list.json"
 
 FITBIT_SLEEP_LOG_ENDPOINT = "/1.2/user/{user_id}/sleep/list.json"
@@ -26,6 +30,7 @@ def fitbit_activity_import(personicle_user_id, fitbit_user_id, access_token, las
 
     """
     activities_api_endpoint = fitbit_oauth_config['API_ENDPOINT'] + FITBIT_ACTIVITIES_ENDPOINT.format(user_id=fitbit_user_id)
+    print('activities api', activities_api_endpoint)
     print("fitbit actvity import")
     if last_accessed_at is None:
         query_parameters = {
@@ -47,12 +52,19 @@ def fitbit_activity_import(personicle_user_id, fitbit_user_id, access_token, las
         "authorization": "Bearer {}".format(access_token)
     }
     LOG.info("Requesting fitbit activities with query parameters: {}".format(query_parameters))
+    # print("Requesting fitbit activities with query parameters: {}".format(query_parameters))
+    # print("Requesting fitbit activities with query header: {}".format(query_header))
     activities_response = requests.get(activities_api_endpoint, headers=query_header, params=query_parameters)
+
     activities = json.loads(activities_response.content)
+    print('activities_response', type(activities))
+    with open("fitbit_activities.json", "w") as outfile:
+        json.dump(activities, outfile)
 
     LOG.info("Received payload: {}".format(json.dumps(activities, indent=2)))
     if 'activities' not in activities:
         LOG.error("Incorrect response received")
+        print("Incorrect response received")
         return False, activities
     
     # Parse every event, send to producer and update the last accessed\
@@ -60,7 +72,8 @@ def fitbit_activity_import(personicle_user_id, fitbit_user_id, access_token, las
     # ADD tcx file download functionality
 
     # CHECK FOR PAGINATED RESPONSE
-    
+    print('status', status)
+    print('response', resp)
     return status, resp
 
 def fitbit_sleep_import(personicle_user_id, fitbit_user_id, access_token, last_accessed_at, fitbit_oauth_config):
@@ -94,13 +107,17 @@ def fitbit_sleep_import(personicle_user_id, fitbit_user_id, access_token, last_a
     }
     LOG.info("Requesting fitbit sleep events with query parameters: {}".format(query_parameters))
     sleep_response = requests.get(sleep_api_endpoint, headers=query_header, params=query_parameters)
+    #print(sleep_response.content)
     sleep = json.loads(sleep_response.content)
+    with open("sleep.json", "w") as outfile:
+        json.dump(sleep, outfile)
 
     LOG.info("Received payload: {}".format(json.dumps(sleep, indent=2)))
     if 'sleep' not in sleep:
         LOG.error("Incorrect response received")
         return False, sleep
 
+    
     # Parse every event, send to producer and update the last accessed\
     status, resp = fitbit_upload.send_records_to_producer(personicle_user_id, sleep['sleep'], 'sleep')
     # CHECK FOR PAGINATED RESPONSE
@@ -147,7 +164,7 @@ def initiate_fitbit_data_import(personicle_user_id):
     last_accessed_at = user_record.last_accessed_at
 
     LOG.info("fitbit access token for user {} was last accessed at {}".format(personicle_user_id, last_accessed_at))
-
+    print("fitbit access token for user {} was last accessed at {}".format(personicle_user_id, last_accessed_at))
     status, activities_response = fitbit_activity_import(personicle_user_id, fitbit_user_id, user_record.access_token, last_accessed_at, fitbit_oauth_config)
     sleep_status, sleep_response = fitbit_sleep_import(personicle_user_id, fitbit_user_id, user_record.access_token, last_accessed_at, fitbit_oauth_config)
     
